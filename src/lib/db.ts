@@ -49,6 +49,30 @@ export function initDb(): Promise<void> {
         added_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `;
+
+    // Legends: color labels per calendar (admin-managed)
+    await sql`
+      CREATE TABLE IF NOT EXISTS legends (
+        id TEXT PRIMARY KEY,
+        calendar TEXT NOT NULL CHECK (calendar IN ('elites', 'plats')),
+        label TEXT NOT NULL,
+        color TEXT NOT NULL DEFAULT '#6b7280',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_by TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS legends_calendar_idx
+        ON legends (calendar, sort_order);
+    `;
+
+    // Add legend_id to events if not already there
+    await sql`
+      ALTER TABLE events
+        ADD COLUMN IF NOT EXISTS legend_id TEXT REFERENCES legends(id) ON DELETE SET NULL;
+    `;
   })().catch((err) => {
     initPromise = null; // allow retry
     throw err;

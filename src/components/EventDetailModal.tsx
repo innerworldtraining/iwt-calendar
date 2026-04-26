@@ -1,5 +1,5 @@
 "use client";
-import type { EventRecord } from "@/lib/types";
+import type { EventRecord, LegendRecord } from "@/lib/types";
 import {
   buildIcsForEvent,
   downloadIcs,
@@ -60,12 +60,13 @@ const ICONS = {
 type Props = {
   ev: EventRecord;
   isAdmin: boolean;
+  legend?: LegendRecord | null;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
 };
 
-export function EventDetailModal({ ev, isAdmin, onClose, onEdit, onDelete }: Props) {
+export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelete }: Props) {
   const start = new Date(ev.startsAt);
   const end = ev.endsAt ? new Date(ev.endsAt) : null;
   const calLabel = ev.calendar === "elites" ? "Elites" : "Plats";
@@ -109,6 +110,18 @@ export function EventDetailModal({ ev, isAdmin, onClose, onEdit, onDelete }: Pro
                 <span className="dot" />
                 {calLabel}
               </span>
+              {legend && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "2px 8px", borderRadius: 999,
+                  background: `${legend.color}18`, color: legend.color,
+                  fontSize: 10, fontWeight: 600, textTransform: "uppercase",
+                  letterSpacing: "0.04em", border: `1px solid ${legend.color}40`,
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: legend.color }} />
+                  {legend.label}
+                </span>
+              )}
               <span style={{ color: "var(--text-4)", fontWeight: 500 }}>
                 {new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(start)}
               </span>

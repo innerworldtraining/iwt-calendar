@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { CalendarKey, EventRecord } from "@/lib/types";
+import type { CalendarKey, EventRecord, LegendRecord } from "@/lib/types";
 import { utcToZonedInput, zonedInputToISO } from "@/lib/calendar-utils";
 
 const TZ_LIST = (() => {
@@ -56,6 +56,7 @@ type Props = {
   defaultCalendar: CalendarKey;
   defaultDate: Date | null;
   browserTz: string;
+  legends: LegendRecord[];
   onClose: () => void;
   onSave: (payload: any) => Promise<boolean>;
 };
@@ -65,6 +66,7 @@ export function EventEditModal({
   defaultCalendar,
   defaultDate,
   browserTz,
+  legends,
   onClose,
   onSave,
 }: Props) {
@@ -79,6 +81,7 @@ export function EventEditModal({
   const [organizer, setOrganizer] = useState(existing?.organizer || "");
   const [orgEmail, setOrgEmail] = useState(existing?.organizerEmail || "");
   const [description, setDescription] = useState(existing?.description || "");
+  const [legendId, setLegendId] = useState<string | null>(existing?.legendId || null);
   const [submitting, setSubmitting] = useState(false);
 
   // start/end as datetime-local strings
@@ -133,6 +136,7 @@ export function EventEditModal({
       endsAt: endISO,
       timezone: tz,
       allDay,
+      legendId,
     });
     if (!ok) setSubmitting(false);
   }
@@ -161,7 +165,7 @@ export function EventEditModal({
               <button
                 type="button"
                 className={`seg-opt${calendar === "elites" ? " active" : ""}`}
-                onClick={() => setCalendar("elites")}
+                onClick={() => { setCalendar("elites"); setLegendId(null); }}
               >
                 <span className="dot" style={{ background: "var(--elites)" }} />
                 Elites
@@ -169,13 +173,63 @@ export function EventEditModal({
               <button
                 type="button"
                 className={`seg-opt${calendar === "plats" ? " active" : ""}`}
-                onClick={() => setCalendar("plats")}
+                onClick={() => { setCalendar("plats"); setLegendId(null); }}
               >
                 <span className="dot" style={{ background: "var(--plats)" }} />
                 Plats
               </button>
             </div>
           </div>
+
+          {/* Legend picker */}
+          {(() => {
+            const calLegends = legends.filter((l) => l.calendar === calendar);
+            if (calLegends.length === 0) return null;
+            const selected = calLegends.find((l) => l.id === legendId);
+            return (
+              <div className="field">
+                <label>Event type (legend)</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setLegendId(null)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "6px 10px", borderRadius: "var(--r-sm)",
+                      border: legendId === null ? "2px solid var(--text)" : "1px solid var(--border)",
+                      background: legendId === null ? "var(--surface-2)" : "white",
+                      fontSize: 12, fontWeight: legendId === null ? 600 : 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: "#6b7280", display: "inline-block" }} />
+                    None
+                  </button>
+                  {calLegends.map((leg) => (
+                    <button
+                      key={leg.id}
+                      type="button"
+                      onClick={() => setLegendId(leg.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "6px 10px", borderRadius: "var(--r-sm)",
+                        border: legendId === leg.id ? `2px solid ${leg.color}` : "1px solid var(--border)",
+                        background: legendId === leg.id ? `${leg.color}18` : "white",
+                        fontSize: 12, fontWeight: legendId === leg.id ? 600 : 500,
+                        cursor: "pointer", color: legendId === leg.id ? leg.color : "var(--text)",
+                      }}
+                    >
+                      <span style={{ width: 10, height: 10, borderRadius: 3, background: leg.color, display: "inline-block" }} />
+                      {leg.label}
+                    </button>
+                  ))}
+                </div>
+                {selected && (
+                  <div className="field-help">Events will show in <strong style={{ color: selected.color }}>{selected.label}</strong> color on the calendar</div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="field">
             <label>

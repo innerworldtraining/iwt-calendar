@@ -58,29 +58,17 @@ export function LoginForm() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              background: "var(--primary)",
-              borderRadius: "var(--r)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontWeight: 700,
-              fontSize: "18px",
-              letterSpacing: "-0.04em",
-            }}
-          >
-            I
-          </div>
+          <img
+            src="/mtm-logo.png"
+            alt="Mission To Movement"
+            style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+          />
           <div>
             <div style={{ fontWeight: 700, fontSize: "17px", letterSpacing: "-0.01em" }}>
               IWT Calendar
             </div>
-            <div style={{ fontSize: "12px", color: "var(--text-4)" }}>
-              For Elites & Plats members
+            <div style={{ fontSize: "11px", color: "var(--text-4)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600, marginTop: "2px" }}>
+              Inner World Training
             </div>
           </div>
         </div>

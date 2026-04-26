@@ -13,9 +13,20 @@ export type EventRecord = {
   endsAt: string | null; // ISO or null
   timezone: string;
   allDay: boolean;
+  legendId: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type LegendRecord = {
+  id: string;
+  calendar: CalendarKey;
+  label: string;
+  color: string;
+  sortOrder: number;
+  createdBy: string | null;
+  createdAt: string;
 };
 
 export type AdminRecord = {

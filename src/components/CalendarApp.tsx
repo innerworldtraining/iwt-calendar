@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import type { CalendarKey, EventRecord, SessionPayload } from "@/lib/types";
+import type { CalendarKey, EventRecord, LegendRecord, SessionPayload } from "@/lib/types";
 import {
   buildIcs,
   buildIcsForEvent,
@@ -17,18 +17,40 @@ import {
 import { EventEditModal } from "./EventEditModal";
 import { EventDetailModal } from "./EventDetailModal";
 import { MembersModal } from "./MembersModal";
+import { LegendsModal } from "./LegendsModal";
 import { Toast } from "./Toast";
 
-type Props = { session: SessionPayload };
+type ThemeKey = "light" | "dark";
+type ThemeMap = { elites: ThemeKey; plats: ThemeKey };
+
+function loadThemes(): ThemeMap {
+  if (typeof window === "undefined") return { elites: "light", plats: "light" };
+  return {
+    elites: (localStorage.getItem("iwt_theme_elites") as ThemeKey) || "light",
+    plats: (localStorage.getItem("iwt_theme_plats") as ThemeKey) || "light",
+  };
+}
+
+function applyTheme(cal: CalendarKey, theme: ThemeKey) {
+  const el = document.documentElement;
+  el.classList.remove("dark-elites", "dark-plats");
+  if (theme === "dark") {
+    el.classList.add(cal === "elites" ? "dark-elites" : "dark-plats");
+  }
+}
 
 const BROWSER_TZ =
   typeof window !== "undefined"
     ? Intl.DateTimeFormat().resolvedOptions().timeZone
     : "UTC";
 
+type Props = { session: SessionPayload };
+
 export function CalendarApp({ session }: Props) {
   const [events, setEvents] = useState<EventRecord[]>([]);
+  const [legends, setLegends] = useState<LegendRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [themes, setThemes] = useState<ThemeMap>({ elites: "light", plats: "light" });
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [currentCalendar, setCurrentCalendar] = useState<CalendarKey>(() => {
     return (session.calendars[0] as CalendarKey) || "elites";
@@ -39,6 +61,7 @@ export function CalendarApp({ session }: Props) {
   const [editingEvent, setEditingEvent] = useState<EventRecord | null>(null);
   const [creatingEvent, setCreatingEvent] = useState<{ date: Date | null; calendar: CalendarKey } | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [showLegends, setShowLegends] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -51,7 +74,29 @@ export function CalendarApp({ session }: Props) {
   // load events
   useEffect(() => {
     loadEvents();
+    loadLegends();
+    // Load saved themes and apply current calendar's theme
+    const saved = loadThemes();
+    setThemes(saved);
+    const initCal = (session.calendars[0] as CalendarKey) || "elites";
+    applyTheme(initCal, saved[initCal]);
   }, []);
+
+  function toggleTheme() {
+    const next: ThemeKey = themes[currentCalendar] === "light" ? "dark" : "light";
+    const updated = { ...themes, [currentCalendar]: next };
+    setThemes(updated);
+    localStorage.setItem(`iwt_theme_${currentCalendar}`, next);
+    applyTheme(currentCalendar, next);
+  }
+
+  async function loadLegends() {
+    try {
+      const res = await fetch("/api/legends", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok) setLegends(data.legends || []);
+    } catch { /* non-critical */ }
+  }
 
   async function loadEvents() {
     setLoading(true);
@@ -212,25 +257,25 @@ export function CalendarApp({ session }: Props) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div
+            {/* MTM Logo */}
+            <img
+              src="/mtm-logo.png"
+              alt="Mission To Movement"
               style={{
-                width: "30px",
-                height: "30px",
-                background: "var(--primary)",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                fontWeight: 700,
-                fontSize: "14px",
-                letterSpacing: "-0.04em",
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                flexShrink: 0,
               }}
-            >
-              I
-            </div>
-            <div style={{ fontWeight: 700, fontSize: "15px", letterSpacing: "-0.01em" }}>
-              IWT Calendar
+            />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "15px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+                IWT Calendar
+              </div>
+              <div style={{ fontSize: "10px", color: "var(--text-4)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
+                Inner World Training
+              </div>
             </div>
           </div>
           {showCalendarTabs && (
@@ -246,7 +291,10 @@ export function CalendarApp({ session }: Props) {
               {visibleCals.map((cal) => (
                 <button
                   key={cal}
-                  onClick={() => setCurrentCalendar(cal)}
+                  onClick={() => {
+                    setCurrentCalendar(cal);
+                    applyTheme(cal, themes[cal]);
+                  }}
                   style={{
                     background: cal === currentCalendar ? "white" : "none",
                     border: "none",
@@ -278,7 +326,59 @@ export function CalendarApp({ session }: Props) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {session.isAdmin && (
+          {/* Welcome Legend text */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "5px 12px",
+              background: currentCalendar === "elites"
+                ? "linear-gradient(135deg, var(--elites-bg), transparent)"
+                : "linear-gradient(135deg, var(--plats-bg), transparent)",
+              borderRadius: "999px",
+              border: `1px solid ${currentCalendar === "elites" ? "var(--elites-bg)" : "var(--plats-bg)"}`,
+              fontSize: "12px",
+              fontWeight: 600,
+              color: currentCalendar === "elites" ? "var(--elites-text)" : "var(--plats-text)",
+              letterSpacing: "0.01em",
+              transition: "all 0.3s ease",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}>👋</span>
+            Welcome, Legend{session.name ? ` ${session.name.split(" ")[0]}` : ""}!
+          </div>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            title={themes[currentCalendar] === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            style={{
+              ...iconBtn,
+              background: themes[currentCalendar] === "dark" ? "var(--surface-3)" : "transparent",
+              color: themes[currentCalendar] === "dark"
+                ? (currentCalendar === "elites" ? "var(--elites)" : "var(--plats)")
+                : "var(--text-2)",
+              transition: "all 0.2s",
+            }}
+          >
+            {themes[currentCalendar] === "dark" ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                <circle cx={12} cy={12} r={5} />
+                <line x1={12} y1={1} x2={12} y2={3} />
+                <line x1={12} y1={21} x2={12} y2={23} />
+                <line x1={4.22} y1={4.22} x2={5.64} y2={5.64} />
+                <line x1={18.36} y1={18.36} x2={19.78} y2={19.78} />
+                <line x1={1} y1={12} x2={3} y2={12} />
+                <line x1={21} y1={12} x2={23} y2={12} />
+                <line x1={4.22} y1={19.78} x2={5.64} y2={18.36} />
+                <line x1={18.36} y1={5.64} x2={19.78} y2={4.22} />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
             <button
               onClick={() => setShowMembers(true)}
               title="Manage admins"
@@ -289,6 +389,21 @@ export function CalendarApp({ session }: Props) {
                 <circle cx={9} cy={7} r={4} />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </button>
+          )}
+          {session.isAdmin && (
+            <button
+              onClick={() => setShowLegends(true)}
+              title="Manage legends"
+              style={iconBtn}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                <circle cx={12} cy={12} r={3} fill="currentColor" />
+                <circle cx={6} cy={8} r={2} fill="currentColor" opacity={0.6} />
+                <circle cx={18} cy={8} r={2} fill="currentColor" opacity={0.6} />
+                <circle cx={6} cy={16} r={2} fill="currentColor" opacity={0.4} />
+                <circle cx={18} cy={16} r={2} fill="currentColor" opacity={0.4} />
               </svg>
             </button>
           )}
@@ -526,170 +641,162 @@ export function CalendarApp({ session }: Props) {
             boxShadow: "var(--shadow-sm)",
           }}
         >
-          {/* Day headers */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, 1fr)",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
-              <div
-                key={d}
-                style={{
-                  padding: "12px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "var(--text-3)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                  borderRight: i < 6 ? "1px solid var(--border-soft)" : "none",
-                }}
-              >
-                {d}
-              </div>
-            ))}
-          </div>
+          {/* Horizontal scroll wrapper for small screens — guarantees alignment */}
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+            <div style={{ minWidth: "420px" }}>
+              {/* SINGLE UNIFIED GRID — headers + cells share one grid so they never drift */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
 
-          {/* Day grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, 1fr)",
-              gridAutoRows: "minmax(110px, 1fr)",
-            }}
-          >
-            {days.map((day, i) => {
-              const inMonth = day.getMonth() === currentMonth.getMonth();
-              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-              const key = dateKeyInZone(day, BROWSER_TZ);
-              const isToday = key === todayKey;
-              const dayEvents = eventsByDay[key] || [];
-              const lastCol = i % 7 === 6;
-              const lastRow = i >= 35;
-
-              const bg = inMonth ? (isWeekend ? "#fcfcfd" : "white") : isWeekend ? "#f8f8fa" : "#fafafa";
-
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    if (session.isAdmin) {
-                      setCreatingEvent({ date: day, calendar: currentCalendar });
-                    }
-                  }}
-                  style={{
-                    borderRight: lastCol ? "none" : "1px solid var(--border-soft)",
-                    borderBottom: lastRow ? "none" : "1px solid var(--border-soft)",
-                    padding: "8px",
-                    minHeight: "110px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "3px",
-                    cursor: session.isAdmin ? "pointer" : "default",
-                    background: bg,
-                    transition: "background 0.1s",
-                  }}
-                >
+                {/* Day headers */}
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
                   <div
+                    key={d}
                     style={{
-                      fontSize: "13px",
+                      padding: "10px 8px",
+                      fontSize: "11px",
                       fontWeight: 600,
-                      color: inMonth ? "var(--text-2)" : "var(--text-5)",
-                      lineHeight: 1,
-                      width: "24px",
-                      height: "24px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "50%",
-                      marginBottom: "2px",
-                      ...(isToday
-                        ? { background: "var(--primary)", color: "white" }
-                        : {}),
+                      color: "var(--text-3)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      borderBottom: "1px solid var(--border)",
+                      borderRight: i < 6 ? "1px solid var(--border-soft)" : "none",
+                      background: "var(--surface)",
                     }}
                   >
-                    {day.getDate()}
+                    {d}
                   </div>
+                ))}
 
-                  {dayEvents.slice(0, 3).map((ev) => (
-                    <button
-                      key={ev.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedEvent(ev);
+                {/* Day cells */}
+                {days.map((day, i) => {
+                  const inMonth = day.getMonth() === currentMonth.getMonth();
+                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                  const key = dateKeyInZone(day, BROWSER_TZ);
+                  const isToday = key === todayKey;
+                  const dayEvents = eventsByDay[key] || [];
+                  const lastCol = i % 7 === 6;
+                  const lastRow = i >= 35;
+
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        if (session.isAdmin) {
+                          setCreatingEvent({ date: day, calendar: currentCalendar });
+                        }
                       }}
-                      title={ev.title}
                       style={{
+                        borderRight: lastCol ? "none" : "1px solid var(--border-soft)",
+                        borderBottom: lastRow ? "none" : "1px solid var(--border-soft)",
+                        padding: "6px",
+                        minHeight: "90px",
                         display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "3px 8px",
-                        borderRadius: "4px",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "white",
-                        cursor: "pointer",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        border: "none",
-                        width: "100%",
-                        textAlign: "left",
-                        lineHeight: 1.3,
-                        background: ev.calendar === "elites" ? "var(--elites)" : "var(--plats)",
+                        flexDirection: "column",
+                        gap: "3px",
+                        cursor: session.isAdmin ? "pointer" : "default",
+                        background: inMonth
+                          ? isWeekend ? "var(--surface-2)" : "var(--surface)"
+                          : "var(--bg)",
+                        transition: "background 0.1s",
                       }}
                     >
-                      {!ev.allDay && (
-                        <span
-                          style={{
-                            fontFamily: "var(--font-mono, monospace)",
-                            fontSize: "10px",
-                            opacity: 0.85,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {fmtTimeShort(new Date(ev.startsAt), BROWSER_TZ)}
-                        </span>
-                      )}
-                      <span
+                      <div
                         style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: inMonth ? "var(--text-2)" : "var(--text-5)",
+                          lineHeight: 1,
+                          width: "22px",
+                          height: "22px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "50%",
+                          marginBottom: "2px",
+                          flexShrink: 0,
+                          ...(isToday
+                            ? { background: "var(--primary)", color: "white" }
+                            : {}),
                         }}
                       >
-                        {ev.title}
-                      </span>
-                    </button>
-                  ))}
+                        {day.getDate()}
+                      </div>
 
-                  {dayEvents.length > 3 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // open the first one as a sample, or create a day list — for now open first
-                        setSelectedEvent(dayEvents[3]);
-                      }}
-                      style={{
-                        background: "transparent",
-                        color: "var(--text-3)",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        padding: "2px 8px",
-                        border: "none",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      + {dayEvents.length - 3} more
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                      {dayEvents.slice(0, 3).map((ev) => {
+                        const legend = ev.legendId ? legends.find((l) => l.id === ev.legendId) : null;
+                        const pillColor = legend
+                          ? legend.color
+                          : ev.calendar === "elites"
+                          ? "var(--elites)"
+                          : "var(--plats)";
+                        return (
+                          <button
+                            key={ev.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEvent(ev);
+                            }}
+                            title={ev.title}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "white",
+                              cursor: "pointer",
+                              overflow: "hidden",
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              border: "none",
+                              width: "100%",
+                              textAlign: "left",
+                              lineHeight: 1.4,
+                              background: pillColor,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {!ev.allDay && (
+                              <span className="pill-time-sm" style={{ fontFamily: "monospace", fontSize: "10px", opacity: 0.85, fontWeight: 500, flexShrink: 0 }}>
+                                {fmtTimeShort(new Date(ev.startsAt), BROWSER_TZ)}
+                              </span>
+                            )}
+                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {ev.title}
+                            </span>
+                          </button>
+                        );
+                      })}
+
+                      {dayEvents.length > 3 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEvent(dayEvents[3]);
+                          }}
+                          style={{
+                            background: "transparent",
+                            color: "var(--text-3)",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            padding: "1px 6px",
+                            border: "none",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          +{dayEvents.length - 3} more
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+              </div>
+            </div>
           </div>
 
           {/* Footer */}
@@ -697,45 +804,96 @@ export function CalendarApp({ session }: Props) {
             style={{
               background: "white",
               borderTop: "1px solid var(--border)",
-              padding: "12px 16px",
+              padding: "14px 16px",
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "space-between",
               color: "var(--text-3)",
               fontSize: "12px",
               flexWrap: "wrap",
-              gap: "8px",
+              gap: "12px",
             }}
           >
-            <div style={{ display: "flex", gap: "16px" }}>
-              {visibleCals.includes("elites") && (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--elites)" }} />
-                  Elites
-                </div>
-              )}
-              {visibleCals.includes("plats") && (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--plats)" }} />
-                  Plats
-                </div>
-              )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* Calendar color key */}
+              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                {visibleCals.includes("elites") && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--elites)" }} />
+                    Elites
+                  </div>
+                )}
+                {visibleCals.includes("plats") && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--plats)" }} />
+                    Plats
+                  </div>
+                )}
+              </div>
+              {/* Legend key */}
+              {(() => {
+                const visibleLegends = legends.filter((l) => filterCals.includes(l.calendar));
+                if (visibleLegends.length === 0) return null;
+                return (
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                    {visibleLegends.map((leg) => (
+                      <div key={leg.id} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: leg.color }} />
+                        {leg.label}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "6px 12px",
-                background: "var(--surface-2)",
-                borderRadius: "999px",
-                fontFamily: "monospace",
-                fontSize: "11px",
-                color: "var(--text-2)",
-              }}
-            >
-              {BROWSER_TZ}
+
+            {/* Right side: timezone + IWT branding */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "6px 12px",
+                  background: "var(--surface-2)",
+                  borderRadius: "999px",
+                  fontFamily: "monospace",
+                  fontSize: "11px",
+                  color: "var(--text-2)",
+                }}
+              >
+                {BROWSER_TZ}
+              </div>
+
+              {/* IWT branding */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <img
+                  src="/mtm-logo.png"
+                  alt="IWT"
+                  style={{ width: "20px", height: "20px", borderRadius: "50%", opacity: 0.6 }}
+                />
+                <span style={{ fontSize: "11px", color: "var(--text-4)", fontWeight: 500 }}>
+                  Inner World Training
+                </span>
+              </div>
             </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div
+            style={{
+              background: "var(--surface-2)",
+              borderTop: "1px solid var(--border)",
+              padding: "10px 16px",
+              fontSize: "11px",
+              color: "var(--text-4)",
+              textAlign: "center",
+              lineHeight: 1.5,
+            }}
+          >
+            This calendar is exclusively for active Inner World Training program members.
+            Unauthorized access or sharing of calendar content is strictly prohibited.
+            © {new Date().getFullYear()} Inner World Training · All rights reserved.
           </div>
         </div>
 
@@ -751,6 +909,7 @@ export function CalendarApp({ session }: Props) {
         <EventDetailModal
           ev={selectedEvent}
           isAdmin={session.isAdmin}
+          legend={selectedEvent.legendId ? legends.find((l) => l.id === selectedEvent.legendId) : null}
           onClose={() => setSelectedEvent(null)}
           onEdit={() => {
             setEditingEvent(selectedEvent);
@@ -765,6 +924,7 @@ export function CalendarApp({ session }: Props) {
           defaultCalendar={editingEvent?.calendar || creatingEvent?.calendar || currentCalendar}
           defaultDate={creatingEvent?.date || null}
           browserTz={BROWSER_TZ}
+          legends={legends}
           onClose={() => {
             setEditingEvent(null);
             setCreatingEvent(null);
@@ -778,6 +938,12 @@ export function CalendarApp({ session }: Props) {
         <MembersModal
           currentEmail={session.email}
           onClose={() => setShowMembers(false)}
+          showToast={showToast}
+        />
+      )}
+      {showLegends && session.isAdmin && (
+        <LegendsModal
+          onClose={() => { setShowLegends(false); loadLegends(); }}
           showToast={showToast}
         />
       )}

@@ -19,6 +19,7 @@ function rowToEvent(r: any): EventRecord {
     endsAt: r.ends_at ? new Date(r.ends_at).toISOString() : null,
     timezone: r.timezone || "UTC",
     allDay: !!r.all_day,
+    legendId: r.legend_id || null,
     createdBy: r.created_by || null,
     createdAt: new Date(r.created_at).toISOString(),
     updatedAt: new Date(r.updated_at).toISOString(),
@@ -53,6 +54,7 @@ export async function PATCH(
     const url = body.url !== undefined ? String(body.url) : current.url;
     const organizer = body.organizer !== undefined ? String(body.organizer) : current.organizer;
     const organizerEmail = body.organizerEmail !== undefined ? String(body.organizerEmail) : current.organizer_email;
+    const legendId = body.legendId !== undefined ? body.legendId : current.legend_id;
 
     if (calendar !== "elites" && calendar !== "plats") {
       return NextResponse.json({ error: "Calendar must be 'elites' or 'plats'" }, { status: 400 });
@@ -80,6 +82,7 @@ export async function PATCH(
         ends_at = ${endsAt},
         timezone = ${timezone},
         all_day = ${allDay},
+        legend_id = ${legendId},
         updated_at = NOW()
       WHERE id = ${id}
     `;

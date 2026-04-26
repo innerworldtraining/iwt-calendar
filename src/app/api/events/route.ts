@@ -19,6 +19,7 @@ function rowToEvent(r: any): EventRecord {
     endsAt: r.ends_at ? new Date(r.ends_at).toISOString() : null,
     timezone: r.timezone || "UTC",
     allDay: !!r.all_day,
+    legendId: r.legend_id || null,
     createdBy: r.created_by || null,
     createdAt: new Date(r.created_at).toISOString(),
     updatedAt: new Date(r.updated_at).toISOString(),
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
     const url = String(body.url || "");
     const organizer = String(body.organizer || "");
     const organizerEmail = String(body.organizerEmail || "");
+    const legendId = body.legendId || null;
 
     if (calendar !== "elites" && calendar !== "plats") {
       return NextResponse.json(
@@ -110,11 +112,11 @@ export async function POST(req: Request) {
     await sql`
       INSERT INTO events (
         id, calendar, title, description, location, url, organizer, organizer_email,
-        starts_at, ends_at, timezone, all_day, created_by
+        starts_at, ends_at, timezone, all_day, legend_id, created_by
       ) VALUES (
         ${id}, ${calendar}, ${title}, ${description}, ${location}, ${url},
         ${organizer}, ${organizerEmail},
-        ${startsAt}, ${endsAt}, ${timezone}, ${allDay}, ${session.email}
+        ${startsAt}, ${endsAt}, ${timezone}, ${allDay}, ${legendId}, ${session.email}
       )
     `;
 
