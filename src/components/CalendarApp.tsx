@@ -857,22 +857,7 @@ export function CalendarApp({ session }: Props) {
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {/* Calendar color key */}
-              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                {visibleCals.includes("elites") && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--elites)" }} />
-                    Elites
-                  </div>
-                )}
-                {visibleCals.includes("plats") && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: "var(--plats)" }} />
-                    Plats
-                  </div>
-                )}
-              </div>
-              {/* Legend key */}
+              {/* Legend key only — no calendar labels */}
               {(() => {
                 const visibleLegends = legends.filter((l) => filterCals.includes(l.calendar));
                 if (visibleLegends.length === 0) return null;
