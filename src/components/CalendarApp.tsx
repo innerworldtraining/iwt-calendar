@@ -244,7 +244,7 @@ export function CalendarApp({ session }: Props) {
       {/* TOP NAV */}
       <header
         style={{
-          background: "white",
+          background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
           padding: "0 24px",
           display: "flex",
@@ -296,7 +296,7 @@ export function CalendarApp({ session }: Props) {
                     applyTheme(cal, themes[cal]);
                   }}
                   style={{
-                    background: cal === currentCalendar ? "white" : "none",
+                    background: cal === currentCalendar ? "var(--surface)" : "none",
                     border: "none",
                     padding: "6px 14px",
                     fontSize: "13px",
@@ -419,7 +419,7 @@ export function CalendarApp({ session }: Props) {
                 alignItems: "center",
                 gap: "10px",
                 padding: "4px 12px 4px 4px",
-                background: "white",
+                background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "999px",
                 cursor: "pointer",
@@ -459,7 +459,7 @@ export function CalendarApp({ session }: Props) {
                   top: "calc(100% + 6px)",
                   right: 0,
                   minWidth: "240px",
-                  background: "white",
+                  background: "var(--surface)",
                   border: "1px solid var(--border)",
                   borderRadius: "var(--r)",
                   boxShadow: "var(--shadow-lg)",
@@ -522,7 +522,7 @@ export function CalendarApp({ session }: Props) {
       {/* SUB NAV */}
       <div
         style={{
-          background: "white",
+          background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
           padding: "14px 24px",
           display: "flex",
@@ -603,8 +603,8 @@ export function CalendarApp({ session }: Props) {
             style={{
               background:
                 session.calendars[0] === "elites"
-                  ? "linear-gradient(135deg, var(--elites-soft), white)"
-                  : "linear-gradient(135deg, var(--plats-soft), white)",
+                  ? "linear-gradient(135deg, var(--elites-soft), var(--surface))"
+                  : "linear-gradient(135deg, var(--plats-soft), var(--surface))",
               border: `1px solid ${session.calendars[0] === "elites" ? "var(--elites-bg)" : "var(--plats-bg)"}`,
               borderRadius: "var(--r)",
               padding: "14px 18px",
@@ -635,7 +635,7 @@ export function CalendarApp({ session }: Props) {
         {/* CALENDAR CARD */}
         <div
           style={{
-            background: "white",
+            background: "var(--surface)",
             border: "1px solid var(--border)",
             borderRadius: "var(--r-lg)",
             overflow: "hidden",
@@ -803,7 +803,7 @@ export function CalendarApp({ session }: Props) {
           {/* Footer */}
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               borderTop: "1px solid var(--border)",
               padding: "14px 16px",
               display: "flex",
