@@ -148,7 +148,7 @@ export function LegendsModal({ onClose, showToast }: Props) {
                     style={{
                       display: "flex", alignItems: "center", gap: 12,
                       padding: "10px 12px", border: "1px solid var(--border)",
-                      borderRadius: "var(--r-sm)", background: "white",
+                      borderRadius: "var(--r-sm)", background: "var(--surface)",
                     }}
                   >
                     <div style={{
@@ -233,7 +233,7 @@ function LegendEditRow({
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           style={{
-            flex: 1, background: "white", border: "1px solid var(--border)",
+            flex: 1, background: "var(--surface)", border: "1px solid var(--border)",
             padding: "7px 10px", borderRadius: "var(--r-sm)", fontSize: 13,
           }}
           autoFocus

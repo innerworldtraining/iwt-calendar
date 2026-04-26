@@ -68,6 +68,17 @@ export function initDb(): Promise<void> {
         ON legends (calendar, sort_order);
     `;
 
+    // Add external_uid column to events if not already there (for ICS import deduplication)
+    await sql`
+      ALTER TABLE events
+        ADD COLUMN IF NOT EXISTS external_uid TEXT;
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS events_external_uid_idx
+        ON events (external_uid) WHERE external_uid IS NOT NULL;
+    `;
+
     // Add legend_id to events if not already there
     await sql`
       ALTER TABLE events

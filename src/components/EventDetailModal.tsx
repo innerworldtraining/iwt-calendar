@@ -190,7 +190,7 @@ export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelet
             <div
               style={{
                 padding: "14px 16px",
-                background: "white",
+                background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "var(--r)",
                 fontSize: "13px",
@@ -230,14 +230,14 @@ export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelet
                   <span style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {p.icon}
                   </span>
-                  <span>{p.name}</span>
+                  <span style={{ color: "var(--text)" }}>{p.name}</span>
                 </a>
               ) : (
-                <button key={p.name} onClick={p.onClick} style={addCalBtnStyle}>
+                <button key={p.name} onClick={p.onClick} className="add-cal-btn" style={addCalBtnStyle}>
                   <span style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {p.icon}
                   </span>
-                  <span>{p.name}</span>
+                  <span style={{ color: "var(--text)" }}>{p.name}</span>
                 </button>
               )
             )}
@@ -270,7 +270,7 @@ const addCalBtnStyle: React.CSSProperties = {
   alignItems: "center",
   gap: "10px",
   padding: "10px 12px",
-  background: "white",
+  background: "var(--surface)",
   border: "1px solid var(--border)",
   borderRadius: "var(--r-sm)",
   cursor: "pointer",

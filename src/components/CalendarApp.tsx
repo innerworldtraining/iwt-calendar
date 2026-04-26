@@ -18,6 +18,7 @@ import { EventEditModal } from "./EventEditModal";
 import { EventDetailModal } from "./EventDetailModal";
 import { MembersModal } from "./MembersModal";
 import { LegendsModal } from "./LegendsModal";
+import { ImportModal } from "./ImportModal";
 import { Toast } from "./Toast";
 
 type ThemeKey = "light" | "dark";
@@ -62,6 +63,7 @@ export function CalendarApp({ session }: Props) {
   const [creatingEvent, setCreatingEvent] = useState<{ date: Date | null; calendar: CalendarKey } | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [showLegends, setShowLegends] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -405,6 +407,19 @@ export function CalendarApp({ session }: Props) {
                 <circle cx={18} cy={8} r={2} fill="currentColor" opacity={0.6} />
                 <circle cx={6} cy={16} r={2} fill="currentColor" opacity={0.4} />
                 <circle cx={18} cy={16} r={2} fill="currentColor" opacity={0.4} />
+              </svg>
+            </button>
+          )}
+          {session.isAdmin && (
+            <button
+              onClick={() => setShowImport(true)}
+              title="Import from Google Calendar (.ics)"
+              style={iconBtn}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1={12} y1={3} x2={12} y2={15} />
               </svg>
             </button>
           )}
@@ -945,6 +960,17 @@ export function CalendarApp({ session }: Props) {
       {showLegends && session.isAdmin && (
         <LegendsModal
           onClose={() => { setShowLegends(false); loadLegends(); }}
+          showToast={showToast}
+        />
+      )}
+      {showImport && session.isAdmin && (
+        <ImportModal
+          defaultCalendar={currentCalendar}
+          onClose={() => setShowImport(false)}
+          onImported={async (result) => {
+            showToast(result.message);
+            await loadEvents();
+          }}
           showToast={showToast}
         />
       )}

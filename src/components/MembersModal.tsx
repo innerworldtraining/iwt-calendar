@@ -104,7 +104,7 @@ export function MembersModal({ currentEmail, onClose, showToast }: Props) {
                       padding: "10px 12px",
                       border: "1px solid var(--border)",
                       borderRadius: "var(--r-sm)",
-                      background: "white",
+                      background: "var(--surface)",
                     }}
                   >
                     <div

@@ -48,7 +48,7 @@ export function LoginForm() {
     >
       <div
         style={{
-          background: "white",
+          background: "var(--surface)",
           border: "1px solid var(--border)",
           borderRadius: "var(--r-xl)",
           padding: "40px",

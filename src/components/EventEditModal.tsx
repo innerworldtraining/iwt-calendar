@@ -197,7 +197,7 @@ export function EventEditModal({
                       display: "flex", alignItems: "center", gap: 6,
                       padding: "6px 10px", borderRadius: "var(--r-sm)",
                       border: legendId === null ? "2px solid var(--text)" : "1px solid var(--border)",
-                      background: legendId === null ? "var(--surface-2)" : "white",
+                      background: legendId === null ? "var(--surface-2)" : "var(--surface)",
                       fontSize: 12, fontWeight: legendId === null ? 600 : 500,
                       cursor: "pointer",
                     }}
@@ -214,7 +214,7 @@ export function EventEditModal({
                         display: "flex", alignItems: "center", gap: 6,
                         padding: "6px 10px", borderRadius: "var(--r-sm)",
                         border: legendId === leg.id ? `2px solid ${leg.color}` : "1px solid var(--border)",
-                        background: legendId === leg.id ? `${leg.color}18` : "white",
+                        background: legendId === leg.id ? `${leg.color}28` : "var(--surface)",
                         fontSize: 12, fontWeight: legendId === leg.id ? 600 : 500,
                         cursor: "pointer", color: legendId === leg.id ? leg.color : "var(--text)",
                       }}

@@ -518,3 +518,24 @@ textarea {
     display: none;
   }
 }
+
+/* ========================= */
+/* DARK MODE LINK FIX        */
+/* ========================= */
+/* Force all links to inherit text color so dark mode works */
+a {
+  color: inherit;
+}
+a:hover {
+  opacity: 0.85;
+}
+
+/* Add-to-calendar buttons specifically */
+.add-cal-btn {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+.add-cal-btn:hover {
+  background: var(--surface-2) !important;
+}
