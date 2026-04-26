@@ -126,12 +126,18 @@ export function LoginForm() {
             fontSize: "11px",
             color: "var(--text-4)",
             textAlign: "center",
-            lineHeight: 1.5,
+            lineHeight: 1.6,
           }}
         >
           Access is automatic for active Elites and Plats members.
           <br />
-          Need help? Contact your account manager.
+          Need help? Email our support at{" "}
+          <a
+            href="mailto:support@innerworldtraining.com"
+            style={{ color: "var(--text-3)", textDecoration: "underline" }}
+          >
+            support@innerworldtraining.com
+          </a>
         </p>
       </div>
     </div>
