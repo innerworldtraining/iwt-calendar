@@ -137,9 +137,9 @@ export function CalendarApp({ session }: Props) {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
-  // What calendars to show in the grid
+  // What calendars to show in the grid — always just the active tab
   const visibleCals = session.calendars;
-  const filterCals: CalendarKey[] = session.isAdmin ? [currentCalendar] : visibleCals;
+  const filterCals: CalendarKey[] = [currentCalendar];
 
   // Group events by local date
   const eventsByDay = useMemo(() => {
