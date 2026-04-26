@@ -68,6 +68,7 @@ export function CalendarApp({ session }: Props) {
   const [showImport, setShowImport] = useState(false);
   const [showClearMonth, setShowClearMonth] = useState(false);
   const [showClearUpcoming, setShowClearUpcoming] = useState(false);
+  const [showPlatsBanner, setShowPlatsBanner] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -300,6 +301,17 @@ export function CalendarApp({ session }: Props) {
                   onClick={() => {
                     setCurrentCalendar(cal);
                     applyTheme(cal, themes[cal]);
+                    // Show upgrade banner when a Plats member visits Elites
+                    if (
+                      cal === "elites" &&
+                      !session.isAdmin &&
+                      session.calendars.includes("plats") &&
+                      session.calendars.includes("elites")
+                    ) {
+                      setShowPlatsBanner(true);
+                    } else {
+                      setShowPlatsBanner(false);
+                    }
                   }}
                   style={{
                     background: cal === currentCalendar ? "var(--surface)" : "none",
@@ -668,14 +680,58 @@ export function CalendarApp({ session }: Props) {
 
       {/* MAIN */}
       <main style={{ padding: "24px", maxWidth: "1400px", width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
-        {!session.isAdmin && (
+        {/* Plats upgrade banner — shown when Plats member visits Elites tab */}
+        {showPlatsBanner && !session.isAdmin && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, var(--plats-soft, #f5f3ff), var(--surface))",
+              border: "1px solid var(--plats-bg)",
+              borderRadius: "var(--r)",
+              padding: "16px 18px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "14px",
+              fontSize: "13px",
+              color: "var(--plats-text)",
+              position: "relative",
+            }}
+          >
+            <span style={{ fontSize: "22px", flexShrink: 0 }}>🎉</span>
+            <div style={{ flex: 1, lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>
+                You've leveled up to the Platinum program!
+              </div>
+              You've already stepped up to your next level — the Platinum program. However, you're always welcome to join some of the Elites calls if you'd like, whether to revisit a topic or join for a refresher. Keep it up! 💪
+            </div>
+            <button
+              onClick={() => setShowPlatsBanner(false)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--plats-text)",
+                opacity: 0.6,
+                cursor: "pointer",
+                fontSize: "18px",
+                lineHeight: 1,
+                padding: "0 2px",
+                flexShrink: 0,
+              }}
+              title="Dismiss"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Default member info banner — shown for non-plats members or on Plats tab */}
+        {!session.isAdmin && !showPlatsBanner && (
           <div
             style={{
               background:
-                session.calendars[0] === "elites"
+                currentCalendar === "elites"
                   ? "linear-gradient(135deg, var(--elites-soft), var(--surface))"
                   : "linear-gradient(135deg, var(--plats-soft), var(--surface))",
-              border: `1px solid ${session.calendars[0] === "elites" ? "var(--elites-bg)" : "var(--plats-bg)"}`,
+              border: `1px solid ${currentCalendar === "elites" ? "var(--elites-bg)" : "var(--plats-bg)"}`,
               borderRadius: "var(--r)",
               padding: "14px 18px",
               display: "flex",
@@ -683,7 +739,7 @@ export function CalendarApp({ session }: Props) {
               gap: "14px",
               fontSize: "13px",
               color:
-                session.calendars[0] === "elites" ? "var(--elites-text)" : "var(--plats-text)",
+                currentCalendar === "elites" ? "var(--elites-text)" : "var(--plats-text)",
             }}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={18} height={18} style={{ flexShrink: 0 }}>
@@ -693,9 +749,7 @@ export function CalendarApp({ session }: Props) {
             </svg>
             <div>
               <strong>
-                {session.calendars.length > 1
-                  ? "Member access."
-                  : `${session.calendars[0] === "elites" ? "Elites" : "Plats"} member access.`}
+                {currentCalendar === "elites" ? "Elites" : "Plats"} member access.
               </strong>{" "}
               You're viewing your member calendar. Click any event to add it to your personal calendar.
             </div>

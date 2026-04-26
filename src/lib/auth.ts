@@ -97,13 +97,15 @@ export async function resolveAccess(email: string): Promise<Session | null> {
 
   const calendars: Array<"elites" | "plats"> = [];
   const roles: Role[] = [];
-  if (hasElites) {
-    calendars.push("elites");
-    roles.push("elites");
-  }
+
+  // Plats first — if they have Plats tag, that's their primary calendar
   if (hasPlats) {
     calendars.push("plats");
     roles.push("plats");
+  }
+  if (hasElites) {
+    calendars.push("elites");
+    roles.push("elites");
   }
   if (calendars.length === 0) return null; // no access
 
