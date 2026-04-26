@@ -379,6 +379,7 @@ export function CalendarApp({ session }: Props) {
               </svg>
             )}
           </button>
+          {session.isAdmin && (
             <button
               onClick={() => setShowMembers(true)}
               title="Manage admins"
