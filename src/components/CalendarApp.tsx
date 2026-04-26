@@ -19,6 +19,7 @@ import { EventDetailModal } from "./EventDetailModal";
 import { MembersModal } from "./MembersModal";
 import { LegendsModal } from "./LegendsModal";
 import { ImportModal } from "./ImportModal";
+import { ClearMonthModal } from "./ClearMonthModal";
 import { Toast } from "./Toast";
 
 type ThemeKey = "light" | "dark";
@@ -64,6 +65,7 @@ export function CalendarApp({ session }: Props) {
   const [showMembers, setShowMembers] = useState(false);
   const [showLegends, setShowLegends] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showClearMonth, setShowClearMonth] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -598,6 +600,30 @@ export function CalendarApp({ session }: Props) {
           </button>
           {session.isAdmin && (
             <button
+              onClick={() => setShowClearMonth(true)}
+              style={{
+                ...navArrow,
+                width: "auto",
+                padding: "7px 12px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "var(--danger)",
+                borderColor: "var(--border)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+              title={`Clear all ${monthName} ${year} events`}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}>
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Clear {monthName}
+            </button>
+          )}
+          {session.isAdmin && (
+            <button
               className="btn-primary"
               onClick={() => setCreatingEvent({ date: null, calendar: currentCalendar })}
             >
@@ -972,6 +998,38 @@ export function CalendarApp({ session }: Props) {
             await loadEvents();
           }}
           showToast={showToast}
+        />
+      )}
+      {showClearMonth && session.isAdmin && (
+        <ClearMonthModal
+          calendar={currentCalendar}
+          month={currentMonth.getMonth() + 1}
+          year={currentMonth.getFullYear()}
+          eventCount={
+            Object.values(eventsByDay)
+              .flat()
+              .filter(
+                (ev) =>
+                  ev.calendar === currentCalendar &&
+                  new Date(ev.startsAt).getMonth() === currentMonth.getMonth() &&
+                  new Date(ev.startsAt).getFullYear() === currentMonth.getFullYear()
+              ).length
+          }
+          onClose={() => setShowClearMonth(false)}
+          onConfirm={async () => {
+            const res = await fetch(
+              `/api/events/clear-month?calendar=${currentCalendar}&year=${currentMonth.getFullYear()}&month=${currentMonth.getMonth() + 1}`,
+              { method: "DELETE" }
+            );
+            const data = await res.json();
+            if (!res.ok) {
+              showToast(data.error || "Failed to clear", "error");
+            } else {
+              showToast(data.message);
+              setShowClearMonth(false);
+              await loadEvents();
+            }
+          }}
         />
       )}
 
