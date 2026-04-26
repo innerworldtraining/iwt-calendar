@@ -20,6 +20,7 @@ import { MembersModal } from "./MembersModal";
 import { LegendsModal } from "./LegendsModal";
 import { ImportModal } from "./ImportModal";
 import { ClearMonthModal } from "./ClearMonthModal";
+import { ClearUpcomingModal } from "./ClearUpcomingModal";
 import { Toast } from "./Toast";
 
 type ThemeKey = "light" | "dark";
@@ -66,6 +67,7 @@ export function CalendarApp({ session }: Props) {
   const [showLegends, setShowLegends] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showClearMonth, setShowClearMonth] = useState(false);
+  const [showClearUpcoming, setShowClearUpcoming] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -624,6 +626,33 @@ export function CalendarApp({ session }: Props) {
           )}
           {session.isAdmin && (
             <button
+              onClick={() => setShowClearUpcoming(true)}
+              style={{
+                ...navArrow,
+                width: "auto",
+                padding: "7px 12px",
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "var(--danger)",
+                borderColor: "#fecaca",
+                background: "#fef2f2",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+              title="Delete all upcoming events"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}>
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1={10} y1={11} x2={10} y2={17}/>
+                <line x1={14} y1={11} x2={14} y2={17}/>
+              </svg>
+              Delete All Upcoming
+            </button>
+          )}
+          {session.isAdmin && (
+            <button
               className="btn-primary"
               onClick={() => setCreatingEvent({ date: null, calendar: currentCalendar })}
             >
@@ -1012,6 +1041,33 @@ export function CalendarApp({ session }: Props) {
             } else {
               showToast(data.message);
               setShowClearMonth(false);
+              await loadEvents();
+            }
+          }}
+        />
+      )}
+      {showClearUpcoming && session.isAdmin && (
+        <ClearUpcomingModal
+          calendar={currentCalendar}
+          upcomingCount={
+            events.filter(
+              (ev) =>
+                ev.calendar === currentCalendar &&
+                new Date(ev.startsAt) >= new Date(new Date().setUTCHours(0, 0, 0, 0))
+            ).length
+          }
+          onClose={() => setShowClearUpcoming(false)}
+          onConfirm={async () => {
+            const res = await fetch(
+              `/api/events/clear-upcoming?calendar=${currentCalendar}`,
+              { method: "DELETE" }
+            );
+            const data = await res.json();
+            if (!res.ok) {
+              showToast(data.error || "Failed to delete", "error");
+            } else {
+              showToast(data.message);
+              setShowClearUpcoming(false);
               await loadEvents();
             }
           }}
