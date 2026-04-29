@@ -21,6 +21,7 @@ import { LegendsModal } from "./LegendsModal";
 import { ImportModal } from "./ImportModal";
 import { ClearMonthModal } from "./ClearMonthModal";
 import { ClearUpcomingModal } from "./ClearUpcomingModal";
+import { DuplicateEventModal } from "./DuplicateEventModal";
 import { Toast } from "./Toast";
 
 type ThemeKey = "light" | "dark";
@@ -69,6 +70,7 @@ export function CalendarApp({ session }: Props) {
   const [showClearMonth, setShowClearMonth] = useState(false);
   const [showClearUpcoming, setShowClearUpcoming] = useState(false);
   const [showPlatsBanner, setShowPlatsBanner] = useState(false);
+  const [duplicatingEvent, setDuplicatingEvent] = useState<EventRecord | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // toast
@@ -1048,6 +1050,10 @@ export function CalendarApp({ session }: Props) {
             setSelectedEvent(null);
           }}
           onDelete={() => handleDeleteEvent(selectedEvent)}
+          onDuplicate={() => {
+            setDuplicatingEvent(selectedEvent);
+            setSelectedEvent(null);
+          }}
         />
       )}
       {(editingEvent || creatingEvent) && (
@@ -1144,6 +1150,57 @@ export function CalendarApp({ session }: Props) {
             } else {
               showToast(data.message);
               setShowClearUpcoming(false);
+              await loadEvents();
+            }
+          }}
+        />
+      )}
+
+      {duplicatingEvent && session.isAdmin && (
+        <DuplicateEventModal
+          ev={duplicatingEvent}
+          onClose={() => setDuplicatingEvent(null)}
+          onConfirm={async (newDateStr) => {
+            const ev = duplicatingEvent;
+            // Calculate original duration
+            const origStart = new Date(ev.startsAt);
+            const origEnd = ev.endsAt ? new Date(ev.endsAt) : null;
+            const duration = origEnd ? origEnd.getTime() - origStart.getTime() : 0;
+
+            // Build new start by replacing the date part, keeping original time
+            const [year, month, day] = newDateStr.split("-").map(Number);
+            const newStart = new Date(Date.UTC(
+              year, month - 1, day,
+              origStart.getUTCHours(),
+              origStart.getUTCMinutes(),
+              origStart.getUTCSeconds()
+            ));
+            const newEnd = origEnd ? new Date(newStart.getTime() + duration) : null;
+
+            const res = await fetch("/api/events", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                calendar: ev.calendar,
+                title: ev.title,
+                description: ev.description,
+                location: ev.location,
+                url: ev.url,
+                organizer: ev.organizer,
+                organizerEmail: ev.organizerEmail,
+                startsAt: newStart.toISOString(),
+                endsAt: newEnd ? newEnd.toISOString() : null,
+                timezone: ev.timezone,
+                allDay: ev.allDay,
+                legendId: ev.legendId,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              showToast(data.error || "Duplicate failed", "error");
+            } else {
+              showToast(`"${ev.title}" duplicated successfully`);
+              setDuplicatingEvent(null);
               await loadEvents();
             }
           }}
