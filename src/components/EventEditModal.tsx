@@ -9,11 +9,11 @@ const TZ_LIST = (() => {
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : "UTC";
   const common = [
+    "America/New_York",
     "UTC",
     "America/Los_Angeles",
     "America/Denver",
     "America/Chicago",
-    "America/New_York",
     "America/Toronto",
     "America/Sao_Paulo",
     "America/Mexico_City",
@@ -43,11 +43,8 @@ const TZ_LIST = (() => {
     "Pacific/Honolulu",
   ];
   const list = common.slice();
-  if (!list.includes(browserTz)) list.unshift(browserTz);
-  else {
-    list.splice(list.indexOf(browserTz), 1);
-    list.unshift(browserTz);
-  }
+  // Add browser tz if not already in list
+  if (!list.includes(browserTz)) list.push(browserTz);
   return list;
 })();
 
@@ -74,7 +71,7 @@ export function EventEditModal({
     existing?.calendar || defaultCalendar
   );
   const [title, setTitle] = useState(existing?.title || "");
-  const [tz, setTz] = useState(existing?.timezone || browserTz);
+  const [tz, setTz] = useState(existing?.timezone || "America/New_York");
   const [allDay, setAllDay] = useState(existing?.allDay || false);
   const [location, setLocation] = useState(existing?.location || "");
   const [url, setUrl] = useState(existing?.url || "");
@@ -308,10 +305,9 @@ export function EventEditModal({
           <div className="field">
             <label>Timezone</label>
             <select value={tz} onChange={(e) => setTz(e.target.value)}>
-              {TZ_LIST.map((z, i) => (
+              {TZ_LIST.map((z) => (
                 <option key={z} value={z}>
-                  {z}
-                  {i === 0 ? " (browser)" : ""}
+                  {z}{z === "America/New_York" ? " (default)" : ""}
                 </option>
               ))}
             </select>
