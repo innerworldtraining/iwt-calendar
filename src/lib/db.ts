@@ -79,6 +79,17 @@ export function initDb(): Promise<void> {
         ON events (external_uid) WHERE external_uid IS NOT NULL;
     `;
 
+    // Add recurrence_group_id to events if not already there
+    await sql`
+      ALTER TABLE events
+        ADD COLUMN IF NOT EXISTS recurrence_group_id TEXT;
+    `;
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS events_recurrence_group_idx
+        ON events (recurrence_group_id) WHERE recurrence_group_id IS NOT NULL;
+    `;
+
     // Add legend_id to events if not already there
     await sql`
       ALTER TABLE events

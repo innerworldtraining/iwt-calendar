@@ -192,7 +192,11 @@ export function CalendarApp({ session }: Props) {
         showToast(data.error || "Save failed", "error");
         return false;
       }
-      showToast(isEdit ? "Event updated" : "Event created");
+      if (data.recurring) {
+        showToast(`Created ${data.count} recurring events`);
+      } else {
+        showToast(isEdit ? "Event updated" : "Event created");
+      }
       setEditingEvent(null);
       setCreatingEvent(null);
       // Switch calendar tab if admin created on the other tab
@@ -208,15 +212,27 @@ export function CalendarApp({ session }: Props) {
   }
 
   async function handleDeleteEvent(ev: EventRecord) {
-    if (!confirm(`Delete "${ev.title}"? This cannot be undone.`)) return;
+    const isSeries = !!ev.recurrenceGroupId;
+    let deleteSeries = false;
+
+    if (isSeries) {
+      const choice = window.confirm(
+        `"${ev.title}" is a recurring event.\n\nClick OK to delete the ENTIRE SERIES.\nClick Cancel to delete only THIS occurrence.`
+      );
+      deleteSeries = choice;
+    } else {
+      if (!confirm(`Delete "${ev.title}"? This cannot be undone.`)) return;
+    }
+
     try {
-      const res = await fetch(`/api/events/${ev.id}`, { method: "DELETE" });
+      const url = `/api/events/${ev.id}${deleteSeries ? "?series=true" : ""}`;
+      const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         showToast(data.error || "Delete failed", "error");
         return;
       }
-      showToast("Event deleted");
+      showToast(deleteSeries ? "Series deleted" : "Event deleted");
       setSelectedEvent(null);
       await loadEvents();
     } catch (err) {
@@ -770,7 +786,11 @@ export function CalendarApp({ session }: Props) {
           <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
             <div style={{ minWidth: "420px" }}>
               {/* SINGLE UNIFIED GRID — headers + cells share one grid so they never drift */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                overflow: "hidden",
+              }}>
 
                 {/* Day headers */}
                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
@@ -815,6 +835,7 @@ export function CalendarApp({ session }: Props) {
                         borderBottom: lastRow ? "none" : "1px solid var(--border-soft)",
                         padding: "6px",
                         minHeight: "90px",
+                        minWidth: 0, // ← prevents grid cell from expanding with long text
                         display: "flex",
                         flexDirection: "column",
                         gap: "3px",
@@ -823,6 +844,7 @@ export function CalendarApp({ session }: Props) {
                           ? isWeekend ? "var(--surface-2)" : "var(--surface)"
                           : "var(--bg)",
                         transition: "background 0.1s",
+                        overflow: "hidden", // ← clip anything that escapes
                       }}
                     >
                       <div

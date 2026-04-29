@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { initDb, sql } from "@/lib/db";
 import { requireAdmin, requireSession, HttpError } from "@/lib/auth";
-import type { EventRecord } from "@/lib/types";
+import { expandRecurrence } from "@/lib/recurrence";
+import type { EventRecord, RecurrenceRule } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ function rowToEvent(r: any): EventRecord {
     timezone: r.timezone || "UTC",
     allDay: !!r.all_day,
     legendId: r.legend_id || null,
+    recurrenceGroupId: r.recurrence_group_id || null,
     createdBy: r.created_by || null,
     createdAt: new Date(r.created_at).toISOString(),
     updatedAt: new Date(r.updated_at).toISOString(),
@@ -84,6 +86,7 @@ export async function POST(req: Request) {
     const organizer = String(body.organizer || "");
     const organizerEmail = String(body.organizerEmail || "");
     const legendId = body.legendId || null;
+    const recurrenceRule: RecurrenceRule | null = body.recurrenceRule || null;
 
     if (calendar !== "elites" && calendar !== "plats") {
       return NextResponse.json(
@@ -107,6 +110,44 @@ export async function POST(req: Request) {
       );
     }
 
+    // If recurring, expand occurrences
+    if (recurrenceRule) {
+      const baseStart = new Date(startsAt);
+      const baseEnd = endsAt ? new Date(endsAt) : null;
+      const occurrences = expandRecurrence(baseStart, baseEnd, recurrenceRule);
+
+      if (occurrences.length === 0) {
+        return NextResponse.json({ error: "No occurrences generated from recurrence rule" }, { status: 400 });
+      }
+
+      const groupId = "rg_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const insertedIds: string[] = [];
+
+      for (const occ of occurrences) {
+        const id = "ev_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        await sql`
+          INSERT INTO events (
+            id, calendar, title, description, location, url, organizer, organizer_email,
+            starts_at, ends_at, timezone, all_day, legend_id, recurrence_group_id, created_by
+          ) VALUES (
+            ${id}, ${calendar}, ${title}, ${description}, ${location}, ${url},
+            ${organizer}, ${organizerEmail},
+            ${occ.startsAt.toISOString()}, ${occ.endsAt ? occ.endsAt.toISOString() : null},
+            ${timezone}, ${allDay}, ${legendId}, ${groupId}, ${session.email}
+          )
+        `;
+        insertedIds.push(id);
+      }
+
+      const firstResult = await sql`SELECT * FROM events WHERE id = ${insertedIds[0]}`;
+      return NextResponse.json({
+        event: rowToEvent(firstResult.rows[0]),
+        recurring: true,
+        count: occurrences.length,
+      }, { status: 201 });
+    }
+
+    // Non-recurring single event
     const id = "ev_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
     await sql`

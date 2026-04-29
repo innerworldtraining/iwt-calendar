@@ -122,6 +122,17 @@ export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelet
                   {legend.label}
                 </span>
               )}
+              {ev.recurrenceGroupId && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "2px 8px", borderRadius: 999,
+                  background: "var(--surface-2)", color: "var(--text-3)",
+                  fontSize: 10, fontWeight: 600, textTransform: "uppercase",
+                  letterSpacing: "0.04em", border: "1px solid var(--border)",
+                }}>
+                  🔁 Recurring
+                </span>
+              )}
               <span style={{ color: "var(--text-4)", fontWeight: 500 }}>
                 {new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(start)}
               </span>

@@ -20,6 +20,7 @@ function rowToEvent(r: any): EventRecord {
     timezone: r.timezone || "UTC",
     allDay: !!r.all_day,
     legendId: r.legend_id || null,
+    recurrenceGroupId: r.recurrence_group_id || null,
     createdBy: r.created_by || null,
     createdAt: new Date(r.created_at).toISOString(),
     updatedAt: new Date(r.updated_at).toISOString(),
@@ -99,12 +100,25 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await initDb();
     await requireAdmin();
+
+    const { searchParams } = new URL(req.url);
+    const deleteSeries = searchParams.get("series") === "true";
+
+    if (deleteSeries) {
+      // Get the recurrence_group_id first
+      const ev = await sql`SELECT recurrence_group_id FROM events WHERE id = ${params.id}`;
+      if (ev.rows.length > 0 && ev.rows[0].recurrence_group_id) {
+        await sql`DELETE FROM events WHERE recurrence_group_id = ${ev.rows[0].recurrence_group_id}`;
+        return NextResponse.json({ ok: true, deletedSeries: true });
+      }
+    }
+
     await sql`DELETE FROM events WHERE id = ${params.id}`;
     return NextResponse.json({ ok: true });
   } catch (err: any) {

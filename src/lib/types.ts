@@ -14,10 +14,24 @@ export type EventRecord = {
   timezone: string;
   allDay: boolean;
   legendId: string | null;
+  recurrenceGroupId: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type RecurrenceRule =
+  | { type: "daily"; every: number; endAfter: number }
+  | { type: "weekly"; every: number; days: number[]; endAfter: number }
+  | {
+      type: "monthly";
+      every: number;
+      endAfter: number;
+      monthlyMode: "day-of-month" | "day-of-week";
+      dayOfMonth?: number;
+      weekOrdinal?: "first" | "second" | "third" | "fourth" | "last";
+      weekDay?: number;
+    };
 
 export type LegendRecord = {
   id: string;

@@ -220,7 +220,7 @@ textarea {
 .field {
   margin-bottom: 14px;
 }
-.field label {
+.field label:not(.toggle) {
   display: block;
   font-size: 12px;
   font-weight: 600;
