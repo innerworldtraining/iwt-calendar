@@ -72,6 +72,11 @@ export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelet
   const end = ev.endsAt ? new Date(ev.endsAt) : null;
   const calLabel = ev.calendar === "elites" ? "Elites" : "Plats";
 
+  // Always display in the viewer's local browser timezone
+  const viewerTz = typeof window !== "undefined"
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : ev.timezone;
+
   const downloadIcsFile = () => {
     const ics =
       "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//IWT//Calendar//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n" +
@@ -168,8 +173,8 @@ export function EventDetailModal({ ev, isAdmin, legend, onClose, onEdit, onDelet
               marginBottom: "16px",
             }}
           >
-            <DetailRow icon={<CalendarIcon />} label="When" value={fmtDisplay(start, end, ev.timezone, ev.allDay)} />
-            <DetailRow icon={<ClockIcon />} label="Timezone" value={ev.timezone} />
+            <DetailRow icon={<CalendarIcon />} label="When" value={fmtDisplay(start, end, viewerTz, ev.allDay)} />
+            <DetailRow icon={<ClockIcon />} label="Timezone" value={viewerTz} />
             {ev.location && <DetailRow icon={<PinIcon />} label="Where" value={ev.location} />}
             {ev.url && (
               <DetailRow
