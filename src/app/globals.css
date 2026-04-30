@@ -540,37 +540,22 @@ a:hover {
   background: var(--surface-2) !important;
 }
 
-/* ========================= */
-/* MOBILE NAV RESPONSIVE     */
-/* ========================= */
+/* ================================= */
+/* RESPONSIVE NAV — TABLET + MOBILE  */
+/* ================================= */
 
-/* Hide on mobile */
-@media (max-width: 767px) {
-  .nav-welcome { display: none !important; }
-  .nav-admin-icons { display: none !important; }
-  .nav-subtitle { display: none !important; }
-  .subnav-actions { display: none !important; }
-  .user-name-label { display: none !important; }
-}
-
-/* Show only on mobile */
-.mobile-burger { display: none !important; }
-@media (max-width: 767px) {
-  .mobile-burger { display: inline-flex !important; }
-}
-
-/* Mobile burger dropdown */
+/* Burger dropdown (shared) */
 .burger-dropdown {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  min-width: 220px;
+  min-width: 230px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-xl);
   padding: 6px;
-  z-index: 50;
+  z-index: 100;
   animation: slide-up 0.15s ease;
 }
 .burger-item {
@@ -593,13 +578,73 @@ a:hover {
 .burger-item:hover { background: var(--surface-2); }
 .burger-item.danger { color: var(--danger); }
 .burger-item.danger:hover { background: #fef2f2; }
-.burger-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 6px;
+.burger-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+
+/* Always hide burger on desktop */
+.mobile-burger { display: none !important; }
+
+/* ===== TABLET (768px – 1024px) ===== */
+@media (max-width: 1024px) {
+  /* Hide welcome badge and admin icons on tablet — move to burger */
+  .nav-welcome { display: none !important; }
+  .nav-admin-icons { display: none !important; }
+  /* Show burger on tablet too */
+  .mobile-burger { display: inline-flex !important; }
+  /* Subnav: hide danger buttons, keep subscribe + new event */
+  .subnav-clear-month { display: none !important; }
+  .subnav-delete-upcoming { display: none !important; }
 }
 
-/* Compact month title on mobile */
+/* ===== MOBILE (≤ 767px) ===== */
 @media (max-width: 767px) {
-  .month-title-full { min-width: unset !important; }
+  /* Nav — force single row, reduce padding */
+  .iwt-nav {
+    padding: 0 12px !important;
+    height: 52px !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+  }
+  /* Hide logo text, keep only the logo image */
+  .nav-logo-text { display: none !important; }
+  /* Shrink logo image */
+  .nav-logo-img { width: 30px !important; height: 30px !important; }
+  /* Shrink cal tabs */
+  .iwt-cal-tabs { padding: 2px !important; gap: 1px !important; }
+  .iwt-cal-tab { padding: 4px 8px !important; font-size: 11px !important; gap: 4px !important; }
+  .iwt-cal-tab-dot { width: 6px !important; height: 6px !important; }
+  /* Hide subtitle under logo */
+  .nav-subtitle { display: none !important; }
+  /* Hide welcome badge */
+  .nav-welcome { display: none !important; }
+  /* Hide admin icons */
+  .nav-admin-icons { display: none !important; }
+  /* Hide user name, keep only avatar circle */
+  .user-name-label { display: none !important; }
+  /* Compact user button */
+  .iwt-user-btn { padding: 3px !important; gap: 0 !important; border-radius: 50% !important; }
+  .iwt-user-chevron { display: none !important; }
+  /* Show burger */
+  .mobile-burger { display: inline-flex !important; }
+
+  /* Subnav — single clean row */
+  .iwt-subnav {
+    padding: 8px 12px !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+  .subnav-actions { display: none !important; }
+  .month-title-full { min-width: unset !important; padding: 0 4px !important; font-size: 15px !important; }
+  .iwt-today-btn { padding: 5px 8px !important; font-size: 12px !important; }
+  .iwt-nav-arrow { width: 28px !important; height: 28px !important; }
+
+  /* Main padding */
+  main { padding: 10px !important; }
+
+  /* Modals — full screen feel on mobile */
+  .modal { max-height: 96vh; border-radius: var(--r-lg) !important; }
+  .modal-backdrop { padding: 12px !important; }
+  .modal-head { padding: 16px 16px 10px !important; }
+  .modal-body { padding: 6px 16px 16px !important; }
+  .modal-foot { padding: 12px 16px !important; }
+  .field-row { grid-template-columns: 1fr !important; }
 }

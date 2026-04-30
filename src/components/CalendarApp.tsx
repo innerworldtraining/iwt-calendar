@@ -270,6 +270,7 @@ export function CalendarApp({ session }: Props) {
     <div style={{ minHeight: "100vh", display: "grid", gridTemplateRows: "auto auto 1fr" }}>
       {/* TOP NAV */}
       <header
+        className="iwt-nav"
         style={{
           background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
@@ -286,17 +287,12 @@ export function CalendarApp({ session }: Props) {
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             {/* MTM Logo */}
             <img
+              className="nav-logo-img"
               src="/mtm-logo.png"
               alt="Mission To Movement"
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "50%",
-                objectFit: "cover",
-                flexShrink: 0,
-              }}
+              style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
             />
-            <div>
+            <div className="nav-logo-text">
               <div style={{ fontWeight: 700, fontSize: "15px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
                 IWT Calendar
               </div>
@@ -307,6 +303,7 @@ export function CalendarApp({ session }: Props) {
           </div>
           {showCalendarTabs && (
             <div
+              className="iwt-cal-tabs"
               style={{
                 display: "flex",
                 background: "var(--surface-2)",
@@ -318,16 +315,11 @@ export function CalendarApp({ session }: Props) {
               {visibleCals.map((cal) => (
                 <button
                   key={cal}
+                  className="iwt-cal-tab"
                   onClick={() => {
                     setCurrentCalendar(cal);
                     applyTheme(cal, themes[cal]);
-                    // Show upgrade banner when a Plats member visits Elites
-                    if (
-                      cal === "elites" &&
-                      !session.isAdmin &&
-                      session.calendars.includes("plats") &&
-                      session.calendars.includes("elites")
-                    ) {
+                    if (cal === "elites" && !session.isAdmin && session.calendars.includes("plats") && session.calendars.includes("elites")) {
                       setShowPlatsBanner(true);
                     } else {
                       setShowPlatsBanner(false);
@@ -349,10 +341,9 @@ export function CalendarApp({ session }: Props) {
                   }}
                 >
                   <span
+                    className="iwt-cal-tab-dot"
                     style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
+                      width: "8px", height: "8px", borderRadius: "50%",
                       background: cal === "elites" ? "var(--elites)" : "var(--plats)",
                     }}
                   />
@@ -447,6 +438,7 @@ export function CalendarApp({ session }: Props) {
           {/* User menu */}
           <div className="user-menu-wrap" style={{ position: "relative" }}>
             <button
+              className="iwt-user-btn"
               onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
               style={{
                 display: "flex", alignItems: "center", gap: "8px",
@@ -465,7 +457,7 @@ export function CalendarApp({ session }: Props) {
               <span className="user-name-label" style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>
                 {session.name}
               </span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+              <svg className="iwt-user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
                 style={{ width: "13px", height: "13px", color: "var(--text-4)" }}>
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -581,6 +573,7 @@ export function CalendarApp({ session }: Props) {
 
       {/* SUB NAV */}
       <div
+        className="iwt-subnav"
         style={{
           background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
@@ -593,10 +586,11 @@ export function CalendarApp({ session }: Props) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <button className="btn-secondary" onClick={() => setCurrentMonth(new Date())}>
+          <button className="btn-secondary iwt-today-btn" onClick={() => setCurrentMonth(new Date())}>
             Today
           </button>
           <button
+            className="iwt-nav-arrow"
             style={navArrow}
             onClick={() => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
           >
@@ -616,6 +610,7 @@ export function CalendarApp({ session }: Props) {
             <span style={{ color: "var(--text-4)", fontWeight: 500 }}>{year}</span>
           </div>
           <button
+            className="iwt-nav-arrow"
             style={navArrow}
             onClick={() => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
           >
@@ -625,7 +620,7 @@ export function CalendarApp({ session }: Props) {
           </button>
         </div>
 
-        {/* Desktop subnav actions — hidden on mobile (in burger instead) */}
+        {/* Desktop subnav actions — hidden on mobile/tablet (in burger instead) */}
         <div className="subnav-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button className="btn-secondary" onClick={exportSubscription}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={14} height={14}>
@@ -637,6 +632,7 @@ export function CalendarApp({ session }: Props) {
           </button>
           {session.isAdmin && (
             <button
+              className="subnav-clear-month"
               onClick={() => setShowClearMonth(true)}
               style={{ ...navArrow, width: "auto", padding: "7px 12px", fontSize: "13px", fontWeight: 500, color: "var(--danger)", borderColor: "var(--border)", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
@@ -646,6 +642,7 @@ export function CalendarApp({ session }: Props) {
           )}
           {session.isAdmin && (
             <button
+              className="subnav-delete-upcoming"
               onClick={() => setShowClearUpcoming(true)}
               style={{ ...navArrow, width: "auto", padding: "7px 12px", fontSize: "13px", fontWeight: 500, color: "var(--danger)", borderColor: "#fecaca", background: "#fef2f2", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
