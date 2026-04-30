@@ -72,6 +72,7 @@ export function CalendarApp({ session }: Props) {
   const [showPlatsBanner, setShowPlatsBanner] = useState(false);
   const [duplicatingEvent, setDuplicatingEvent] = useState<EventRecord | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [burgerOpen, setBurgerOpen] = useState(false);
 
   // toast
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -134,6 +135,7 @@ export function CalendarApp({ session }: Props) {
     function onClick(e: MouseEvent) {
       const target = e.target as HTMLElement;
       if (!target.closest(".user-menu-wrap")) setDropdownOpen(false);
+      if (!target.closest(".burger-wrap")) setBurgerOpen(false);
     }
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -298,7 +300,7 @@ export function CalendarApp({ session }: Props) {
               <div style={{ fontWeight: 700, fontSize: "15px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
                 IWT Calendar
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-4)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
+              <div className="nav-subtitle" style={{ fontSize: "10px", color: "var(--text-4)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
                 Inner World Training
               </div>
             </div>
@@ -364,6 +366,7 @@ export function CalendarApp({ session }: Props) {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {/* Welcome Legend text */}
           <div
+            className="nav-welcome"
             style={{
               display: "flex",
               alignItems: "center",
@@ -384,184 +387,192 @@ export function CalendarApp({ session }: Props) {
             <span style={{ fontSize: "14px" }}>👋</span>
             Welcome, Legend{session.name ? ` ${session.name.split(" ")[0]}` : ""}!
           </div>
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            title={themes[currentCalendar] === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            style={{
-              ...iconBtn,
-              background: themes[currentCalendar] === "dark" ? "var(--surface-3)" : "transparent",
-              color: themes[currentCalendar] === "dark"
-                ? (currentCalendar === "elites" ? "var(--elites)" : "var(--plats)")
-                : "var(--text-2)",
-              transition: "all 0.2s",
-            }}
-          >
-            {themes[currentCalendar] === "dark" ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                <circle cx={12} cy={12} r={5} />
-                <line x1={12} y1={1} x2={12} y2={3} />
-                <line x1={12} y1={21} x2={12} y2={23} />
-                <line x1={4.22} y1={4.22} x2={5.64} y2={5.64} />
-                <line x1={18.36} y1={18.36} x2={19.78} y2={19.78} />
-                <line x1={1} y1={12} x2={3} y2={12} />
-                <line x1={21} y1={12} x2={23} y2={12} />
-                <line x1={4.22} y1={19.78} x2={5.64} y2={18.36} />
-                <line x1={18.36} y1={5.64} x2={19.78} y2={4.22} />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
+          {/* Theme + admin icons — hidden on mobile, shown in burger instead */}
+          <div className="nav-admin-icons" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              title={themes[currentCalendar] === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              style={{
+                ...iconBtn,
+                background: themes[currentCalendar] === "dark" ? "var(--surface-3)" : "transparent",
+                color: themes[currentCalendar] === "dark"
+                  ? (currentCalendar === "elites" ? "var(--elites)" : "var(--plats)")
+                  : "var(--text-2)",
+                transition: "all 0.2s",
+              }}
+            >
+              {themes[currentCalendar] === "dark" ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                  <circle cx={12} cy={12} r={5} />
+                  <line x1={12} y1={1} x2={12} y2={3} /><line x1={12} y1={21} x2={12} y2={23} />
+                  <line x1={4.22} y1={4.22} x2={5.64} y2={5.64} /><line x1={18.36} y1={18.36} x2={19.78} y2={19.78} />
+                  <line x1={1} y1={12} x2={3} y2={12} /><line x1={21} y1={12} x2={23} y2={12} />
+                  <line x1={4.22} y1={19.78} x2={5.64} y2={18.36} /><line x1={18.36} y1={5.64} x2={19.78} y2={4.22} />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+            {session.isAdmin && (
+              <button onClick={() => setShowMembers(true)} title="Manage admins" style={iconBtn}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx={9} cy={7} r={4} />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </button>
             )}
-          </button>
-          {session.isAdmin && (
-            <button
-              onClick={() => setShowMembers(true)}
-              title="Manage admins"
-              style={iconBtn}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx={9} cy={7} r={4} />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </button>
-          )}
-          {session.isAdmin && (
-            <button
-              onClick={() => setShowLegends(true)}
-              title="Manage legends"
-              style={iconBtn}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                <circle cx={12} cy={12} r={3} fill="currentColor" />
-                <circle cx={6} cy={8} r={2} fill="currentColor" opacity={0.6} />
-                <circle cx={18} cy={8} r={2} fill="currentColor" opacity={0.6} />
-                <circle cx={6} cy={16} r={2} fill="currentColor" opacity={0.4} />
-                <circle cx={18} cy={16} r={2} fill="currentColor" opacity={0.4} />
-              </svg>
-            </button>
-          )}
-          {session.isAdmin && (
-            <button
-              onClick={() => setShowImport(true)}
-              title="Import from Google Calendar (.ics)"
-              style={iconBtn}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1={12} y1={3} x2={12} y2={15} />
-              </svg>
-            </button>
-          )}
+            {session.isAdmin && (
+              <button onClick={() => setShowLegends(true)} title="Manage legends" style={iconBtn}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                  <circle cx={12} cy={12} r={3} fill="currentColor" />
+                  <circle cx={6} cy={8} r={2} fill="currentColor" opacity={0.6} />
+                  <circle cx={18} cy={8} r={2} fill="currentColor" opacity={0.6} />
+                  <circle cx={6} cy={16} r={2} fill="currentColor" opacity={0.4} />
+                  <circle cx={18} cy={16} r={2} fill="currentColor" opacity={0.4} />
+                </svg>
+              </button>
+            )}
+            {session.isAdmin && (
+              <button onClick={() => setShowImport(true)} title="Import from Google Calendar (.ics)" style={iconBtn}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" /><line x1={12} y1={3} x2={12} y2={15} />
+                </svg>
+              </button>
+            )}
+          </div>
+          {/* User menu */}
           <div className="user-menu-wrap" style={{ position: "relative" }}>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setDropdownOpen(!dropdownOpen);
-              }}
+              onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "4px 12px 4px 4px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: "999px",
-                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "4px 10px 4px 4px", background: "var(--surface)",
+                border: "1px solid var(--border)", borderRadius: "999px", cursor: "pointer",
               }}
             >
-              <div
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  background: "var(--surface-3)",
-                  color: "var(--text-2)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 600,
-                  fontSize: "12px",
-                }}
-              >
+              <div style={{
+                width: "28px", height: "28px", borderRadius: "50%",
+                background: "var(--surface-3)", color: "var(--text-2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 600, fontSize: "12px", flexShrink: 0,
+              }}>
                 {initials}
               </div>
-              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>{session.name}</div>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "13px", height: "13px", color: "var(--text-4)", marginRight: "2px" }}
-              >
+              <span className="user-name-label" style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>
+                {session.name}
+              </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+                style={{ width: "13px", height: "13px", color: "var(--text-4)" }}>
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
             {dropdownOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 6px)",
-                  right: 0,
-                  minWidth: "240px",
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--r)",
-                  boxShadow: "var(--shadow-lg)",
-                  padding: "6px",
-                  zIndex: 50,
-                }}
-              >
+              <div style={{
+                position: "absolute", top: "calc(100% + 6px)", right: 0,
+                minWidth: "240px", background: "var(--surface)",
+                border: "1px solid var(--border)", borderRadius: "var(--r)",
+                boxShadow: "var(--shadow-lg)", padding: "6px", zIndex: 50,
+              }}>
                 <div style={{ padding: "10px 12px 12px", borderBottom: "1px solid var(--border-soft)", marginBottom: "4px" }}>
                   <div style={{ fontWeight: 600, fontSize: "13px" }}>{session.name}</div>
-                  <div style={{ fontSize: "12px", color: "var(--text-4)", marginTop: "2px" }}>
-                    {session.email}
-                  </div>
+                  <div style={{ fontSize: "12px", color: "var(--text-4)", marginTop: "2px" }}>{session.email}</div>
                   <div style={{ marginTop: "6px", display: "flex", gap: "4px" }}>
-                    {session.isAdmin && (
-                      <span className="role-badge admin">
-                        <span className="dot" />
-                        admin
-                      </span>
-                    )}
-                    {!session.isAdmin &&
-                      session.calendars.map((c) => (
-                        <span key={c} className={`role-badge ${c}`}>
-                          <span className="dot" />
-                          {c}
-                        </span>
-                      ))}
+                    {session.isAdmin && (<span className="role-badge admin"><span className="dot" />admin</span>)}
+                    {!session.isAdmin && session.calendars.map((c) => (
+                      <span key={c} className={`role-badge ${c}`}><span className="dot" />{c}</span>
+                    ))}
                   </div>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "8px 12px",
-                    width: "100%",
-                    textAlign: "left",
-                    fontSize: "13px",
-                    color: "var(--danger)",
-                    borderRadius: "6px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
+                  style={{ background: "transparent", border: "none", padding: "8px 12px", width: "100%", textAlign: "left", fontSize: "13px", color: "var(--danger)", borderRadius: "6px", display: "flex", alignItems: "center", gap: "8px" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={14} height={14}>
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1={21} y1={12} x2={9} y2={12} />
+                    <polyline points="16 17 21 12 16 7" /><line x1={21} y1={12} x2={9} y2={12} />
                   </svg>
                   Sign out
                 </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile burger menu */}
+          <div className="burger-wrap mobile-burger" style={{ position: "relative" }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setBurgerOpen(!burgerOpen); }}
+              style={{
+                ...iconBtn,
+                background: burgerOpen ? "var(--surface-2)" : "transparent",
+              }}
+              title="Menu"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={18} height={18}>
+                <line x1={3} y1={6} x2={21} y2={6} />
+                <line x1={3} y1={12} x2={21} y2={12} />
+                <line x1={3} y1={18} x2={21} y2={18} />
+              </svg>
+            </button>
+            {burgerOpen && (
+              <div className="burger-dropdown">
+                {/* Theme toggle */}
+                <button className="burger-item" onClick={() => { toggleTheme(); setBurgerOpen(false); }}>
+                  {themes[currentCalendar] === "dark" ? "☀️" : "🌙"}
+                  <span>{themes[currentCalendar] === "dark" ? "Light mode" : "Dark mode"}</span>
+                </button>
+
+                <button className="burger-item" onClick={() => { exportSubscription(); setBurgerOpen(false); }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1={12} y1={15} x2={12} y2={3}/></svg>
+                  Subscribe (.ics)
+                </button>
+
+                {session.isAdmin && <div className="burger-divider" />}
+
+                {session.isAdmin && (
+                  <button className="burger-item" onClick={() => { setCreatingEvent({ date: null, calendar: currentCalendar }); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><line x1={12} y1={5} x2={12} y2={19}/><line x1={5} y1={12} x2={19} y2={12}/></svg>
+                    New event
+                  </button>
+                )}
+                {session.isAdmin && (
+                  <button className="burger-item" onClick={() => { setShowImport(true); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1={12} y1={3} x2={12} y2={15}/></svg>
+                    Import from Google Calendar
+                  </button>
+                )}
+                {session.isAdmin && (
+                  <button className="burger-item" onClick={() => { setShowLegends(true); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><circle cx={12} cy={12} r={3}/><circle cx={5} cy={12} r={2}/><circle cx={19} cy={12} r={2}/><circle cx={12} cy={5} r={2}/><circle cx={12} cy={19} r={2}/></svg>
+                    Manage legends
+                  </button>
+                )}
+                {session.isAdmin && (
+                  <button className="burger-item" onClick={() => { setShowMembers(true); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx={9} cy={7} r={4}/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Manage admins
+                  </button>
+                )}
+
+                {session.isAdmin && <div className="burger-divider" />}
+
+                {session.isAdmin && (
+                  <button className="burger-item danger" onClick={() => { setShowClearMonth(true); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Clear {monthName} events
+                  </button>
+                )}
+                {session.isAdmin && (
+                  <button className="burger-item danger" onClick={() => { setShowClearUpcoming(true); setBurgerOpen(false); }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1={10} y1={11} x2={10} y2={17}/><line x1={14} y1={11} x2={14} y2={17}/></svg>
+                    Delete all upcoming
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -573,38 +584,32 @@ export function CalendarApp({ session }: Props) {
         style={{
           background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
-          padding: "14px 24px",
+          padding: "10px 24px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "12px",
+          gap: "8px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <button className="btn-secondary" onClick={() => setCurrentMonth(new Date())}>
             Today
           </button>
           <button
             style={navArrow}
-            onClick={() =>
-              setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
-            }
+            onClick={() => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={16} height={16}>
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
           <div
+            className="month-title-full"
             style={{
-              fontSize: "18px",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              padding: "0 12px",
-              minWidth: "180px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
+              fontSize: "18px", fontWeight: 700, letterSpacing: "-0.01em",
+              padding: "0 8px", minWidth: "170px",
+              display: "flex", alignItems: "center", gap: "6px",
             }}
           >
             <span>{monthName}</span>
@@ -612,16 +617,16 @@ export function CalendarApp({ session }: Props) {
           </div>
           <button
             style={navArrow}
-            onClick={() =>
-              setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
-            }
+            onClick={() => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={16} height={16}>
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+        {/* Desktop subnav actions — hidden on mobile (in burger instead) */}
+        <div className="subnav-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button className="btn-secondary" onClick={exportSubscription}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={14} height={14}>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -633,51 +638,18 @@ export function CalendarApp({ session }: Props) {
           {session.isAdmin && (
             <button
               onClick={() => setShowClearMonth(true)}
-              style={{
-                ...navArrow,
-                width: "auto",
-                padding: "7px 12px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "var(--danger)",
-                borderColor: "var(--border)",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-              title={`Clear all ${monthName} ${year} events`}
+              style={{ ...navArrow, width: "auto", padding: "7px 12px", fontSize: "13px", fontWeight: 500, color: "var(--danger)", borderColor: "var(--border)", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}>
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               Clear {monthName}
             </button>
           )}
           {session.isAdmin && (
             <button
               onClick={() => setShowClearUpcoming(true)}
-              style={{
-                ...navArrow,
-                width: "auto",
-                padding: "7px 12px",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "var(--danger)",
-                borderColor: "#fecaca",
-                background: "#fef2f2",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-              title="Delete all upcoming events"
+              style={{ ...navArrow, width: "auto", padding: "7px 12px", fontSize: "13px", fontWeight: 500, color: "var(--danger)", borderColor: "#fecaca", background: "#fef2f2", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}>
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                <line x1={10} y1={11} x2={10} y2={17}/>
-                <line x1={14} y1={11} x2={14} y2={17}/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={13} height={13}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1={10} y1={11} x2={10} y2={17}/><line x1={14} y1={11} x2={14} y2={17}/></svg>
               Delete All Upcoming
             </button>
           )}
@@ -687,8 +659,7 @@ export function CalendarApp({ session }: Props) {
               onClick={() => setCreatingEvent({ date: null, calendar: currentCalendar })}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} width={14} height={14}>
-                <line x1={12} y1={5} x2={12} y2={19} />
-                <line x1={5} y1={12} x2={19} y2={12} />
+                <line x1={12} y1={5} x2={12} y2={19} /><line x1={5} y1={12} x2={19} y2={12} />
               </svg>
               New event
             </button>

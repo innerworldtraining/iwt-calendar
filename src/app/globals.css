@@ -539,3 +539,67 @@ a:hover {
 .add-cal-btn:hover {
   background: var(--surface-2) !important;
 }
+
+/* ========================= */
+/* MOBILE NAV RESPONSIVE     */
+/* ========================= */
+
+/* Hide on mobile */
+@media (max-width: 767px) {
+  .nav-welcome { display: none !important; }
+  .nav-admin-icons { display: none !important; }
+  .nav-subtitle { display: none !important; }
+  .subnav-actions { display: none !important; }
+  .user-name-label { display: none !important; }
+}
+
+/* Show only on mobile */
+.mobile-burger { display: none !important; }
+@media (max-width: 767px) {
+  .mobile-burger { display: inline-flex !important; }
+}
+
+/* Mobile burger dropdown */
+.burger-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 6px;
+  z-index: 50;
+  animation: slide-up 0.15s ease;
+}
+.burger-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.burger-item:hover { background: var(--surface-2); }
+.burger-item.danger { color: var(--danger); }
+.burger-item.danger:hover { background: #fef2f2; }
+.burger-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 6px;
+}
+
+/* Compact month title on mobile */
+@media (max-width: 767px) {
+  .month-title-full { min-width: unset !important; }
+}
