@@ -179,19 +179,17 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-export async function requireAdmin(): Promise<SessionPayload> {
+export async function requireAdmin(): Promise<Session> {
   // Check for API key auth (for Base44 integration)
   try {
     const headersList = await headers();
     const apiKey = headersList.get("x-api-key");
     if (apiKey && apiKey === process.env.ADMIN_API_KEY) {
-      return {
-        email: "api@iwt",
-        name: "API",
-        isAdmin: true,
-        calendars: ["elites", "plats"] as CalendarKey[],
-        roles: ["elites", "plats"] as Role[],
-      };
+     return {
+      email: "api@iwt",
+      name: "API",
+      isAdmin: true,
+    } as Session;
     }
   } catch {}
 
