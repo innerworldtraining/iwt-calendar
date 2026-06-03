@@ -178,7 +178,15 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-export async function requireAdmin(): Promise<Session> {
+export async function requireAdmin(req?: Request): Promise<Session> {
+  const apiKey = req?.headers?.get("x-api-key");
+  if (apiKey && apiKey === process.env.ADMIN_API_KEY) {
+    return {
+      email: "api@iwt",
+      name: "API",
+      isAdmin: true,
+    } as Session;
+  }
   const session = await requireSession();
   if (!session.isAdmin) {
     throw new HttpError(403, "Admin access required");
