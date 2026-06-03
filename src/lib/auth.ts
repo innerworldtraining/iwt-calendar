@@ -6,6 +6,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { initDb, sql } from "./db";
 import { getContactCalendarRoles } from "./ac";
+import { headers } from "next/headers";
 
 const COOKIE_NAME = "iwt_cal_session";
 const SESSION_DAYS = 30;
@@ -178,15 +179,23 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-export async function requireAdmin(req?: Request): Promise<Session> {
-  const apiKey = req?.headers?.get("x-api-key");
-  if (apiKey && apiKey === process.env.ADMIN_API_KEY) {
-    return {
-      email: "api@iwt",
-      name: "API",
-      isAdmin: true,
-    } as Session;
-  }
+export async function requireAdmin(): Promise<SessionPayload> {
+  // Check for API key auth (for Base44 integration)
+  try {
+    const headersList = await headers();
+    const apiKey = headersList.get("x-api-key");
+    if (apiKey && apiKey === process.env.ADMIN_API_KEY) {
+      return {
+        email: "api@iwt",
+        name: "API",
+        isAdmin: true,
+        calendars: ["elites", "plats"] as CalendarKey[],
+        roles: ["elites", "plats"] as Role[],
+      };
+    }
+  } catch {}
+
+  // Existing JWT check
   const session = await requireSession();
   if (!session.isAdmin) {
     throw new HttpError(403, "Admin access required");
