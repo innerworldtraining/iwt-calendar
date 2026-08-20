@@ -18,7 +18,6 @@ import { EventEditModal } from "./EventEditModal";
 import { EventDetailModal } from "./EventDetailModal";
 import { MembersModal } from "./MembersModal";
 import { LegendsModal } from "./LegendsModal";
-import { ImportModal } from "./ImportModal";
 import { ClearMonthModal } from "./ClearMonthModal";
 import { ClearUpcomingModal } from "./ClearUpcomingModal";
 import { DuplicateEventModal } from "./DuplicateEventModal";
@@ -66,7 +65,6 @@ export function CalendarApp({ session }: Props) {
   const [creatingEvent, setCreatingEvent] = useState<{ date: Date | null; calendar: CalendarKey } | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [showLegends, setShowLegends] = useState(false);
-  const [showImport, setShowImport] = useState(false);
   const [showClearMonth, setShowClearMonth] = useState(false);
   const [showClearUpcoming, setShowClearUpcoming] = useState(false);
   const [showPlatsBanner, setShowPlatsBanner] = useState(false);
@@ -426,14 +424,6 @@ export function CalendarApp({ session }: Props) {
                 </svg>
               </button>
             )}
-            {session.isAdmin && (
-              <button onClick={() => setShowImport(true)} title="Import from Google Calendar (.ics)" style={iconBtn}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} width={16} height={16}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" /><line x1={12} y1={3} x2={12} y2={15} />
-                </svg>
-              </button>
-            )}
           </div>
           {/* User menu */}
           <div className="user-menu-wrap" style={{ position: "relative" }}>
@@ -530,12 +520,6 @@ export function CalendarApp({ session }: Props) {
                   <button className="burger-item" onClick={() => { setCreatingEvent({ date: null, calendar: currentCalendar }); setBurgerOpen(false); }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><line x1={12} y1={5} x2={12} y2={19}/><line x1={5} y1={12} x2={19} y2={12}/></svg>
                     New event
-                  </button>
-                )}
-                {session.isAdmin && (
-                  <button className="burger-item" onClick={() => { setShowImport(true); setBurgerOpen(false); }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={15} height={15}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1={12} y1={3} x2={12} y2={15}/></svg>
-                    Import from Google Calendar
                   </button>
                 )}
                 {session.isAdmin && (
@@ -1050,17 +1034,6 @@ export function CalendarApp({ session }: Props) {
       {showLegends && session.isAdmin && (
         <LegendsModal
           onClose={() => { setShowLegends(false); loadLegends(); }}
-          showToast={showToast}
-        />
-      )}
-      {showImport && session.isAdmin && (
-        <ImportModal
-          defaultCalendar={currentCalendar}
-          onClose={() => setShowImport(false)}
-          onImported={async (result) => {
-            showToast(result.message);
-            await loadEvents();
-          }}
           showToast={showToast}
         />
       )}
