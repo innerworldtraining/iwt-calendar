@@ -57,4 +57,6 @@ export type SessionPayload = {
   roles: string[];
   calendars: CalendarKey[];
   isAdmin: boolean;
+  /** True for Fast Start Bundle members — some events are hidden for them */
+  isFastStart?: boolean;
 };
