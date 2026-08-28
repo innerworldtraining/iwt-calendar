@@ -143,12 +143,10 @@ export function CalendarApp({ session }: Props) {
   const visibleCals = session.calendars;
   const filterCals: CalendarKey[] = [currentCalendar];
 
-  // Events hidden from Fast Start Bundle members (matched case-insensitively)
-  const FAST_START_HIDDEN = [
-    "transformational life blueprint",
-    "niche and messaging",
-    "rocket launch challenge",
-    "elites family night",
+  // Fast Start Bundle members can ONLY see events matching these keywords
+  const FAST_START_ALLOWED = [
+    "foundation call",
+    "implementation workshop",
   ];
 
   // Group events by local date
@@ -156,10 +154,10 @@ export function CalendarApp({ session }: Props) {
     const map: Record<string, EventRecord[]> = {};
     for (const ev of events) {
       if (!filterCals.includes(ev.calendar)) continue;
-      // Hide specific events for Fast Start Bundle members
+      // Fast Start Bundle members: only show allowed events
       if (session.isFastStart) {
         const titleLower = ev.title.toLowerCase();
-        if (FAST_START_HIDDEN.some((kw) => titleLower.includes(kw))) continue;
+        if (!FAST_START_ALLOWED.some((kw) => titleLower.includes(kw))) continue;
       }
       const start = new Date(ev.startsAt);
       if (isNaN(start.getTime())) continue;
