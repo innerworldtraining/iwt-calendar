@@ -58,6 +58,25 @@ export async function isAdminEmail(email: string): Promise<boolean> {
   return result.rows.length > 0;
 }
 
+// =============================================================
+// Fast Start Bundle — time-limited access whitelist
+// Add entries here as: { email, name, expires (YYYY-MM-DD), calendars }
+// Access is automatically denied after the expiration date.
+// =============================================================
+const FAST_START_BUNDLE: Array<{
+  email: string;
+  name: string;
+  expires: string; // YYYY-MM-DD
+  calendars: Array<"elites" | "plats">;
+}> = [
+  {
+    email: "asma.mdali@gmail.com",
+    name: "Asma Md Ali",
+    expires: "2026-09-28",
+    calendars: ["elites"],
+  },
+];
+
 /**
  * Resolve what access an email should have.
  * Returns null if the email has no access at all.
@@ -88,6 +107,23 @@ export async function resolveAccess(email: string): Promise<Session | null> {
       calendars: ["elites", "plats"],
       isAdmin: true,
     };
+  }
+
+  // Check Fast Start Bundle whitelist
+  const fastStart = FAST_START_BUNDLE.find((e) => e.email === normalized);
+  if (fastStart) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (today <= fastStart.expires) {
+      const roles = fastStart.calendars as Role[];
+      return {
+        email: normalized,
+        name: fastStart.name,
+        roles,
+        calendars: fastStart.calendars,
+        isAdmin: false,
+      };
+    }
+    // Expired — fall through to AC check (will likely return null)
   }
 
   // Not an admin — must be in AC with the right tag
