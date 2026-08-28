@@ -32,8 +32,6 @@ export type Session = {
   calendars: Array<"elites" | "plats">;
   /** True if they can create/edit/delete events and manage admins */
   isAdmin: boolean;
-  /** True for Fast Start Bundle members — some events are hidden for them */
-  isFastStart?: boolean;
 };
 
 /**
@@ -123,7 +121,6 @@ export async function resolveAccess(email: string): Promise<Session | null> {
         roles,
         calendars: fastStart.calendars,
         isAdmin: false,
-        isFastStart: true,
       };
     }
     // Expired — fall through to AC check (will likely return null)
@@ -201,7 +198,6 @@ export async function getSession(): Promise<Session | null> {
       roles: Array.isArray(p.roles) ? p.roles : [],
       calendars: p.calendars,
       isAdmin: !!p.isAdmin,
-      isFastStart: !!p.isFastStart,
     };
   } catch {
     return null;
