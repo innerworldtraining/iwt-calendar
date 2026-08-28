@@ -150,6 +150,7 @@ export function CalendarApp({ session }: Props) {
     "foundation call",
     "rocket launch challenge",
     "implementation workshop",
+    "elites family night",
   ];
 
   // Group events by local date
