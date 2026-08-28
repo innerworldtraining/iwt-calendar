@@ -147,9 +147,7 @@ export function CalendarApp({ session }: Props) {
   const FAST_START_HIDDEN = [
     "transformational life blueprint",
     "niche and messaging",
-    "foundation call",
     "rocket launch challenge",
-    "implementation workshop",
     "elites family night",
   ];
 
