@@ -143,11 +143,25 @@ export function CalendarApp({ session }: Props) {
   const visibleCals = session.calendars;
   const filterCals: CalendarKey[] = [currentCalendar];
 
+  // Events hidden from Fast Start Bundle members (matched case-insensitively)
+  const FAST_START_HIDDEN = [
+    "transformational life blueprint",
+    "niche and messaging",
+    "foundation call",
+    "rocket launch challenge",
+    "implementation workshop",
+  ];
+
   // Group events by local date
   const eventsByDay = useMemo(() => {
     const map: Record<string, EventRecord[]> = {};
     for (const ev of events) {
       if (!filterCals.includes(ev.calendar)) continue;
+      // Hide specific events for Fast Start Bundle members
+      if (session.isFastStart) {
+        const titleLower = ev.title.toLowerCase();
+        if (FAST_START_HIDDEN.some((kw) => titleLower.includes(kw))) continue;
+      }
       const start = new Date(ev.startsAt);
       if (isNaN(start.getTime())) continue;
       const key = dateKeyInZone(start, BROWSER_TZ);
@@ -464,7 +478,10 @@ export function CalendarApp({ session }: Props) {
                   <div style={{ fontSize: "12px", color: "var(--text-4)", marginTop: "2px" }}>{session.email}</div>
                   <div style={{ marginTop: "6px", display: "flex", gap: "4px" }}>
                     {session.isAdmin && (<span className="role-badge admin"><span className="dot" />admin</span>)}
-                    {!session.isAdmin && session.calendars.map((c) => (
+                    {!session.isAdmin && session.isFastStart && (
+                      <span className="role-badge elites"><span className="dot" />Fast Start Bundle</span>
+                    )}
+                    {!session.isAdmin && !session.isFastStart && session.calendars.map((c) => (
                       <span key={c} className={`role-badge ${c}`}><span className="dot" />{c}</span>
                     ))}
                   </div>
@@ -694,7 +711,7 @@ export function CalendarApp({ session }: Props) {
         )}
 
         {/* Default member info banner — shown for non-plats members or on Plats tab */}
-        {!session.isAdmin && !showPlatsBanner && (
+        {!session.isAdmin && !showPlatsBanner && !session.isFastStart && (
           <div
             style={{
               background:
